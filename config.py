@@ -3,8 +3,16 @@ from pydantic import BaseModel, RootModel, Field
 from pathlib import Path
 
 
+class EXTRACTION_CONFIG(BaseModel):
+    model_name: str
+    prompt_file: Path
+    system_prompt_file: Path = None
+    max_tokens: int = None
+
+
 class Config(BaseModel):
     secrets_file: Path = Field(..., description="Path to the secrets file")
+    extraction: EXTRACTION_CONFIG = Field(..., description="Extraction configuration")
 
 
 with open(".config/default.json", "r") as f:

@@ -1,3 +1,9 @@
 {
-    "secrets_file": ".secrets/.env"
+    "secrets_file": ".secrets/.env",
+    "extraction": {
+        "model_name": "gemini-2.0-flash",
+        "prompt_file": "prompts/extraction/instructions.txt",
+        "system_prompt_file": "prompts/extraction/system.txt",
+        "max_tokens": 4096
+    }
 }
