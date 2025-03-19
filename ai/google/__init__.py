@@ -5,6 +5,9 @@ from enum import Enum
 from google import genai
 from google.genai import types
 
+from pathlib import Path
+from typing import List
+
 
 secrets = dotenv_values(config.secrets_file)
 GEMINI_API_KEY = secrets["GEMINI_API_KEY"]
@@ -24,10 +27,17 @@ class GeminiClient:
             )
         self._model = model
 
-    def generate(self, prompt:str, system_prompt:str = None, max_tokens:int = None):
+    def generate(self, prompt:str, system_prompt:str = None, attachments: List[Path]=[], max_tokens:int = None):
+        attached_files = []
+        for attachment in attachments:
+            try:
+                f = self._client.files.upload(attachment)
+                attached_files.append(f)
+            except Exception as e:
+                raise Exception(f"Failed to upload file {attachment}: {e}") from e
         response = self._client.models.generate_content(
             model=self._model.value,
-            contents=prompt,
+            contents= attached_files + [prompt],
             config=types.GenerateContentConfig(
                 max_output_tokens=max_tokens,
                 system_instruction=system_prompt or None,
