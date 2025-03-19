@@ -25,9 +25,9 @@ def extract_all(src_dir: Path, target_dir: Path, model_name: GEMINI_AVAILABLE_MO
     pdf_files = list(src_dir.glob("*.pdf"))
     if not target_dir.exists():
         target_dir.mkdir(parents=True)
-    for pdf_file in tqdm(pdf_files, desc="Extracting summaries"):
-        summary_file = target_dir / pdf_file.with_suffix(".txt")
-        with open(summary_file, "w") as f:
+    for pdf_file in tqdm(pdf_files, desc="Extracting information from PDFs"):
+        extract_file = target_dir / pdf_file.with_suffix(".txt")
+        with open(extract_file, "w") as f:
             f.write(client.generate(prompt, system_prompt, pdf_file, max_tokens))
 
 
