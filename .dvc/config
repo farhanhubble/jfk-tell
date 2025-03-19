@@ -1,0 +1,4 @@
+[core]
+    remote = remotestore
+['remote "remotestore"']
+    url = /storage/devel/dvcstore/jfktell
