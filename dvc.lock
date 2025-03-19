@@ -1,0 +1,15 @@
+schema: '2.0'
+stages:
+  download_2025_data:
+    cmd: python download.py
+    deps:
+    - path: download.py
+      hash: md5
+      md5: 824fbd31ced2690e93e21145040f00ca
+      size: 1825
+    outs:
+    - path: data/archives.gov/2025
+      hash: md5
+      md5: 8fce3dd9234aee1ea3a0c7eb1740380b.dir
+      size: 6468234801
+      nfiles: 2182
