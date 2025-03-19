@@ -1,0 +1,7 @@
+stages:
+  download_2025_data:
+    cmd: python download.py
+    deps:
+      - download.py
+    outs:
+      - data/archives.gov/2025
