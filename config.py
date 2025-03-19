@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 class Config(BaseModel):
-    pass
+    secrets_file: Path = Field(..., description="Path to the secrets file")
 
 
 with open(".config/default.json", "r") as f:
