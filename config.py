@@ -8,6 +8,8 @@ class EXTRACTION_CONFIG(BaseModel):
     prompt_file: Path
     system_prompt_file: Path = None
     max_tokens: int = None
+    src_dir: Path
+    dest_dir: Path
 
 
 class Config(BaseModel):

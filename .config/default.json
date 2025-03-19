@@ -4,6 +4,8 @@
         "model_name": "gemini-2.0-flash",
         "prompt_file": "prompts/extraction/instructions.txt",
         "system_prompt_file": "prompts/extraction/system.txt",
-        "max_tokens": 4096
+        "max_tokens": 4096,
+        "src_dir": "data/archives.gov",
+        "dest_dir": "data/summaries"
     }
 }
