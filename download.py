@@ -1,9 +1,11 @@
 import os
 import requests
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 from urllib.parse import urljoin
 
 def download_2025_archive(page_url, download_folder="pdf_downloads"):
+    print(f"Downloading PDFs from {page_url} to {download_folder}")
     # Create download folder if it doesn't exist
     if not os.path.exists(download_folder):
         os.makedirs(download_folder)
@@ -19,7 +21,7 @@ def download_2025_archive(page_url, download_folder="pdf_downloads"):
     links = soup.find_all("a")
     pdf_links = []
 
-    for link in links:
+    for link in tqdm(links, desc="Extracting PDF links"):
         href = link.get('href')
         if href and '.pdf' in href.lower():
             # Build the absolute URL to the PDF
@@ -30,7 +32,7 @@ def download_2025_archive(page_url, download_folder="pdf_downloads"):
     pdf_links = list(set(pdf_links))
 
     # Download each PDF
-    for pdf_url in pdf_links:
+    for pdf_url in tqdm(pdf_links, desc="Downloading PDFs"):
         try:
             pdf_response = requests.get(pdf_url, stream=True)
             pdf_response.raise_for_status()
@@ -38,8 +40,6 @@ def download_2025_archive(page_url, download_folder="pdf_downloads"):
             # Extract the filename from the URL
             filename = pdf_url.split('/')[-1]
             local_path = os.path.join(download_folder, filename)
-
-            print(f"Downloading {pdf_url} -> {local_path}")
 
             # Save the PDF locally
             with open(local_path, 'wb') as f:

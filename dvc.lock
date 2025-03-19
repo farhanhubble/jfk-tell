@@ -5,8 +5,8 @@ stages:
     deps:
     - path: download.py
       hash: md5
-      md5: 824fbd31ced2690e93e21145040f00ca
-      size: 1825
+      md5: 028e470b33f306cbd039224f822d8a37
+      size: 1920
     outs:
     - path: data/archives.gov/2025
       hash: md5
