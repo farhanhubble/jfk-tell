@@ -38,9 +38,7 @@ def extract_all(
     if not target_dir.exists():
         target_dir.mkdir(parents=True)
     for pdf_file in tqdm(pdf_files, desc="Extracting information from PDFs"):
-        extract_file = target_dir / pdf_file.with_suffix(".md").name
-        with open(extract_file, "w") as f:
-            f.write(_extract_single(pdf_file, client, prompt, system_prompt, max_tokens))
+        _extract_single(pdf_file, target_dir, client, prompt, system_prompt, max_tokens)
 
 
 def _parse_markdown(response: str):
@@ -56,13 +54,19 @@ def _parse_markdown(response: str):
 
 def _extract_single(
     src: Path,
+    tgt_dir: Path,
     client: GeminiClient,
     prompt: str,
     system_prompt: str = None,
     max_tokens: int = None,
 ):
     raw =  client.generate(prompt, system_prompt, [src], max_tokens)
-    return _parse_markdown(raw)
+    content = raw if config.extraction.include_annotation else _parse_markdown(raw)
+    file_ext = ".txt" if config.extraction.include_annotation else ".md"
+    tgt = tgt_dir / src.with_suffix(file_ext).name
+    with open(tgt, "w") as f:
+        f.write(content)
+    
 
 
 if __name__ == "__main__":

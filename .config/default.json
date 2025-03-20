@@ -6,6 +6,7 @@
         "system_prompt_file": "prompts/extraction/system.txt",
         "max_tokens": 4096,
         "src_dir": "data/archives.gov",
-        "dest_dir": "data/extracted"
+        "dest_dir": "data/extracted",
+        "include_annotation": true
     }
 }
