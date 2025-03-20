@@ -43,14 +43,15 @@ def extract_all(
             f.write(_extract_single(pdf_file, client, prompt, system_prompt, max_tokens))
 
 
-def _parse_llm_response(response: str):
+def _parse_markdown(response: str):
     start = response.find("```markdown")
+    md_content = ""
     if start >= 0:
         start += len("```markdown")
         end = response.find("```", start)
         if end >= 0:
-            return response[start:end].strip()
-    return response
+            md_content = response[start:end].strip()
+    return md_content
 
 
 def _extract_single(
@@ -61,7 +62,7 @@ def _extract_single(
     max_tokens: int = None,
 ):
     raw =  client.generate(prompt, system_prompt, [src], max_tokens)
-    return _parse_llm_response(raw)
+    return _parse_markdown(raw)
 
 
 if __name__ == "__main__":
