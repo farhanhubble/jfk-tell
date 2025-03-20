@@ -1,0 +1,4 @@
+The document you have comes from a scanned PDF. Some of the information can be 
+handwritten and some information can be difficult to read. 
+
+Recreate the information in Markdown format as best as possible without making any guesses.

@@ -1,1 +1,2 @@
-You are an expert in faithfully extracting infromation from PDF files
+You are an expert historical researcher analyzing primary-source documents from the JFK 
+assassination files.
