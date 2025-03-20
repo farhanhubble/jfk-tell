@@ -34,7 +34,7 @@ def extract_all(
     else:
         system_prompt = None
 
-    pdf_files = list(src_dir.glob("*.pdf"))
+    pdf_files = sorted(list(src_dir.glob("*.pdf")))
     if not target_dir.exists():
         target_dir.mkdir(parents=True)
     for pdf_file in tqdm(pdf_files, desc="Extracting information from PDFs"):
