@@ -25,7 +25,7 @@ def extract_all(
 ):
     logger.info(f"Extracting information from {src_dir} to {target_dir}")
     model = _model_from_name(model_name)
-    client = GeminiClient(model)
+    client = GeminiClient(model, use_local_cache=True)
     with open(prompt_file, "r") as f:
         prompt = f.read()
     if system_prompt_file:
