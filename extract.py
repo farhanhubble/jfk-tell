@@ -43,6 +43,16 @@ def extract_all(
             f.write(_extract_single(pdf_file, client, prompt, system_prompt, max_tokens))
 
 
+def _parse_llm_response(response: str):
+    start = response.find("```markdown")
+    if start >= 0:
+        start += len("```markdown")
+        end = response.find("```", start)
+        if end >= 0:
+            return response[start:end].strip()
+    return response
+
+
 def _extract_single(
     src: Path,
     client: GeminiClient,
@@ -50,7 +60,8 @@ def _extract_single(
     system_prompt: str = None,
     max_tokens: int = None,
 ):
-    return client.generate(prompt, system_prompt, [src], max_tokens)
+    raw =  client.generate(prompt, system_prompt, [src], max_tokens)
+    return _parse_llm_response(raw)
 
 
 if __name__ == "__main__":
