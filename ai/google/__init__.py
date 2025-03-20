@@ -31,7 +31,7 @@ class GeminiClient:
         attached_files = []
         for attachment in attachments:
             try:
-                f = self._client.files.upload(attachment)
+                f = self._client.files.upload(file=attachment)
                 attached_files.append(f)
             except Exception as e:
                 raise Exception(f"Failed to upload file {attachment}: {e}") from e
