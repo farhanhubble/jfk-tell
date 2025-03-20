@@ -1,13 +1,12 @@
 from config import config
 from dotenv import dotenv_values
 from enum import Enum
-
 from google import genai
 from google.genai import types
-
 from hashlib import md5
-
+import os
 from pathlib import Path
+import tempfile
 from typing import List
 
 
@@ -42,6 +41,8 @@ class GeminiClient:
                 key.update(system_prompt.encode())
             for attachment in attachments:
                 key.update(attachment.read_bytes())
+            if max_tokens:
+                key.update(str(max_tokens).encode())
             return key.hexdigest()
         
         if self._use_local_cache:
@@ -68,7 +69,13 @@ class GeminiClient:
         )
 
         if self._use_local_cache:
-            with open(cache_file, "w") as f:
-                f.write(response.text or "```markdown\n\n```")
+            temp_file = tempfile.NamedTemporaryFile(delete=False, dir=self._cache_dir)
+            try:
+                with open(temp_file.name, "w") as f:
+                    f.write(response.text or "```markdown\n\n```")
+                os.replace(temp_file.name, cache_file)
+            finally:
+                if os.path.exists(temp_file.name):
+                    os.remove(temp_file.name)
 
         return response.text
