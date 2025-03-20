@@ -65,7 +65,7 @@ def _extract_single(
     file_ext = ".txt" if config.extraction.include_annotation else ".md"
     tgt = tgt_dir / src.with_suffix(file_ext).name
     with open(tgt, "w") as f:
-        f.write(content)
+        f.write(content or "")
     
 
 
