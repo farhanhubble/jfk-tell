@@ -69,6 +69,6 @@ class GeminiClient:
 
         if self._use_local_cache:
             with open(cache_file, "w") as f:
-                f.write(response.text)
+                f.write(response.text or "```markdown\n\n```")
 
         return response.text
