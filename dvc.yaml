@@ -5,3 +5,16 @@ stages:
       - download.py
     outs:
       - data/archives.gov/2025
+
+  extract:
+    cmd: python extract.py
+    deps:
+      - extract.py
+      - prompts/extraction/instructions.txt
+      - prompts/extraction/system.txt
+      - data/archives.gov
+    params:
+      - .config/default.json:
+          - extraction
+    outs:
+      - data/extracted
