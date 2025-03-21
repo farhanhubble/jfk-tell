@@ -1,13 +1,17 @@
 from config import config
 from dotenv import dotenv_values
+from httpx import ReadTimeout
 from enum import Enum
+import functools
 from google import genai
 from google.genai import types
+from google.genai.errors import ClientError, ServerError
 from hashlib import md5
 import os
 from pathlib import Path
 import tempfile
-from typing import List
+import time
+from typing import List, Callable
 
 
 secrets = dotenv_values(config.secrets_file)
@@ -18,6 +22,68 @@ class GEMINI_AVAILABLE_MODELS(Enum):
     GEMINI_1_5_FLASH = "gemini-1.5-flash"
     GEMINI_2_0_FLASH = "gemini-2.0-flash"
 
+
+def retry_with_backoff(backoffs: List[int], when: Callable[[Exception], bool]):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            for backoff in backoffs:
+                try:
+                    return func(self, *args, **kwargs)
+                except Exception as e:
+                    if not when(e):
+                        raise
+                    time.sleep(backoff)
+            # Re-raise, if we exhaust all backoffs without success
+            else:
+                raise
+
+        return wrapper
+
+    return decorator
+
+
+def skip_silently(when: Callable[[Exception], bool]):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                if not when(e):
+                    raise
+                else:
+                    return (
+                        "Observations/Remarks:\n\n"
+                        "File too large to be processed.\n\n"
+                        "```markdown\n\n```"
+                    )
+
+        return wrapper
+
+    return decorator
+
+
+def _is_file_size_exceeded(e: Exception):
+    return (
+        isinstance(e, ClientError)
+        and e.code == 400
+        and str(e).find(
+            "The request's total referenced files bytes are too large to be read"
+        )
+        >= 0
+    )
+
+
+def _is_server_overloaded(e: Exception):
+    return isinstance(e, ServerError) and e.code == 503 and str(e).find("The model is overloaded") >= 0
+
+
+def _is_file_io_timeout(e: Exception):
+    return isinstance(e, ReadTimeout)
+
+
+def _is_retryable(e: Exception):
+    return _is_server_overloaded(e) or _is_file_io_timeout(e)
 
 class GeminiClient:
     def __init__(self, model: GEMINI_AVAILABLE_MODELS, use_local_cache: bool = False):
@@ -33,7 +99,15 @@ class GeminiClient:
             if not self._cache_dir.exists():
                 self._cache_dir.mkdir(parents=True)
 
-    def generate(self, prompt:str, system_prompt:str = None, attachments: List[Path]=[], max_tokens:int = None):
+    @retry_with_backoff([30, 60], when=_is_retryable)
+    @skip_silently(when=_is_file_size_exceeded)
+    def generate(
+        self,
+        prompt: str,
+        system_prompt: str = None,
+        attachments: List[Path] = [],
+        max_tokens: int = None,
+    ):
 
         def _get_cache_key():
             key = md5(prompt.encode())
@@ -44,14 +118,14 @@ class GeminiClient:
             if max_tokens:
                 key.update(str(max_tokens).encode())
             return key.hexdigest()
-        
+
         if self._use_local_cache:
             cache_key = _get_cache_key()
             cache_file = self._cache_dir / f"{cache_key}"
             if cache_file.exists():
                 with open(cache_file, "r") as f:
                     return f.read()
-    
+
         attached_files = []
         for attachment in attachments:
             try:
@@ -61,11 +135,11 @@ class GeminiClient:
                 raise Exception(f"Failed to upload file {attachment}: {e}") from e
         response = self._client.models.generate_content(
             model=self._model.value,
-            contents= attached_files + [prompt],
+            contents=attached_files + [prompt],
             config=types.GenerateContentConfig(
                 max_output_tokens=max_tokens,
                 system_instruction=system_prompt or None,
-            )
+            ),
         )
 
         if self._use_local_cache:
