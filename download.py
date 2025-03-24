@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from urllib.parse import urljoin
 
-def download_2025_archive(page_url, download_folder="pdf_downloads"):
+def download_archive(page_url, download_folder="pdf_downloads"):
     print(f"Downloading PDFs from {page_url} to {download_folder}")
     # Create download folder if it doesn't exist
     if not os.path.exists(download_folder):
@@ -50,5 +50,13 @@ def download_2025_archive(page_url, download_folder="pdf_downloads"):
             print(f"Failed to download {pdf_url}: {e}")
 
 if __name__ == "__main__":
-    url = "https://www.archives.gov/research/jfk/release-2025"  # The page to scrape
-    download_2025_archive(url, "./data/archives.gov/2025")
+    url = "https://www.archives.gov/research/jfk/release-2017-2018"
+    download_archive(url, "./data/archives.gov/2017-2018")
+    url = "https://www.archives.gov/research/jfk/release-2021"
+    download_archive(url, "./data/archives.gov/2021")
+    url = "https://www.archives.gov/research/jfk/release-2022"
+    download_archive(url, "./data/archives.gov/2022")
+    url = "https://www.archives.gov/research/jfk/release-2023"
+    download_archive(url, "./data/archives.gov/2023")
+    url = "https://www.archives.gov/research/jfk/release-2025"
+    download_archive(url, "./data/archives.gov/2025")
