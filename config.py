@@ -5,6 +5,7 @@ from pathlib import Path
 
 class DOWNLOAD_CONFIG(BaseModel):
     URLS: dict
+    download_dir: Path
 
 class EXTRACTION_CONFIG(BaseModel):
     model_name: str
