@@ -35,6 +35,11 @@ def _pdf_list_from_metadata(page_url, metadata_url):
     return pdf_links
 
 
+def _download_single_pdf(args):
+    pdf_url, download_folder = args
+    download_single_pdf(pdf_url, download_folder)
+
+
 def download_single_pdf(pdf_url, download_folder):
     try:
         response = requests.get(pdf_url, stream=True)
@@ -64,7 +69,7 @@ def download_archive(metadata_url, page_url, download_folder="pdf_downloads"):
     with Pool(32) as pool:
         list(
             tqdm(
-                pool.imap_unordered(lambda args: download_single_pdf(*args), tasks),
+                pool.imap_unordered(_download_single_pdf, tasks),
                 total=len(pdf_links),
                 desc="Downloading PDFs",
             )
