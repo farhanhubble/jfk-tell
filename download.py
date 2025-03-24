@@ -34,8 +34,6 @@ def _pdf_list_from_page(page_url):
 
 def _pdf_list_from_metadata(metadata_url):
     logger.info(f"Extracting PDF links from metadata at: {metadata_url}")
-    response = requests.get(metadata_url)
-    response.raise_for_status() 
 
     # Load the excel file
     df = pd.read_excel(metadata_url)
