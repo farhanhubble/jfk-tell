@@ -1,5 +1,29 @@
 {
     "secrets_file": ".secrets/.env",
+    "download":{
+        "URLS": {
+            "2017-2018": {
+                "metadata_url": "https://www.archives.gov/files/research/jfk/national-archives-jfk-assassination-records-2017-2018-release.xlsx",
+                "data_url": "https://www.archives.gov/research/jfk/release-2017-2018"
+            },
+            "2021":{
+                    "metadata_url": "https://www.archives.gov/files/research/jfk/national-archives-jfk-assassination-records-2021-release.xlsx",
+                    "data_url": "https://www.archives.gov/research/jfk/release-2021"
+            },
+            "2022":{
+                    "metadata_url": "https://www.archives.gov/files/research/jfk/national-archives-jfk-assassination-records-2022-release.xlsx",
+                    "data_url": "https://www.archives.gov/research/jfk/release-2022"
+            },
+            "2023":{
+                    "metadata_url": "https://www.archives.gov/files/research/jfk/national-archives-jfk-assassination-records-2023-release.xlsx",
+                    "data_url": "https://www.archives.gov/research/jfk/release-2023"
+            },
+            "2025":{
+                    "metadata_url": null,
+                    "data_url": "https://www.archives.gov/research/jfk/release-2025"
+            }
+        }
+    },
     "extraction": {
         "model_name": "gemini-2.0-flash",
         "prompt_file": "prompts/extraction/instructions.txt",

@@ -3,6 +3,9 @@ from pydantic import BaseModel, RootModel, Field
 from pathlib import Path
 
 
+class DOWNLOAD_CONFIG(BaseModel):
+    URLS: dict
+
 class EXTRACTION_CONFIG(BaseModel):
     model_name: str
     prompt_file: Path
@@ -17,6 +20,7 @@ class EXTRACTION_CONFIG(BaseModel):
 
 class Config(BaseModel):
     secrets_file: Path = Field(..., description="Path to the secrets file")
+    download: DOWNLOAD_CONFIG = Field(..., description="Download configuration")
     extraction: EXTRACTION_CONFIG = Field(..., description="Extraction configuration")
 
 
