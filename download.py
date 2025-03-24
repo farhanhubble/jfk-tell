@@ -32,12 +32,12 @@ def _pdf_list_from_page(page_url):
     return pdf_links
 
 
-def _pdf_list_from_metadata(metadata_url):
+def _pdf_list_from_metadata(page_url, metadata_url):
     logger.info(f"Extracting PDF links from metadata at: {metadata_url}")
 
     # Load the excel file
     df = pd.read_excel(metadata_url)
-    pdf_links = df["File Name"].tolist()
+    pdf_links = [urljoin(page_url, href) for href in df["File Name"].tolist()]
     return pdf_links
 
 def download_archive(metadata_url, page_url, download_folder="pdf_downloads"):
@@ -52,7 +52,7 @@ def download_archive(metadata_url, page_url, download_folder="pdf_downloads"):
 
     # Get all PDF links
     if metadata_url:
-        pdf_links = _pdf_list_from_metadata(metadata_url)
+        pdf_links = _pdf_list_from_metadata(page_url, metadata_url)
     else:
         pdf_links = _pdf_list_from_page(page_url)
 
