@@ -18,7 +18,8 @@
                     "data_url": "https://www.archives.gov/research/jfk/release-2025"
             }
         },
-        "download_dir": "data/archives.gov"
+        "download_dir": "data/archives.gov",
+        "download_cache": "data/.cache/archives.gov"
     },
     "extraction": {
         "model_name": "gemini-2.0-flash",
