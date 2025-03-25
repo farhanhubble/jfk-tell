@@ -95,7 +95,7 @@ class GeminiClient:
         self._model = model
         if use_local_cache:
             self._use_local_cache = use_local_cache
-            self._cache_dir = Path(".gemini/cache")
+            self._cache_dir = config.extraction.cache_dir
             if not self._cache_dir.exists():
                 self._cache_dir.mkdir(parents=True)
 

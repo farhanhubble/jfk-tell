@@ -28,6 +28,7 @@
         "max_tokens": 4096,
         "src_dir": "data/archives.gov",
         "dest_dir": "data/extracted",
-        "include_annotation": true
+        "include_annotation": true,
+        "cache_dir": "data/.cache/extraction"
     }
 }
