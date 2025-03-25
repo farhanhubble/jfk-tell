@@ -3,16 +3,16 @@
     "download":{
         "URLS": {
             "2017-2018": {
-                "data_url": "https://www.archives.gov/files/research/jfk/releases/"
+                "data_url": "https://www.archives.gov/research/jfk/release-2017-2018"
             },
             "2021":{
-                    "data_url": "https://www.archives.gov/files/research/jfk/releases/2021/"
+                    "data_url": "https://www.archives.gov/research/jfk/release-2021"
             },
             "2022":{
-                    "data_url": "https://www.archives.gov/files/research/jfk/releases/2022/"
+                    "data_url": "https://www.archives.gov/research/jfk/release-2022/"
             },
             "2023":{
-                    "data_url": "https://www.archives.gov/files/research/jfk/releases/2023/"
+                    "data_url": "https://www.archives.gov/research/jfk/release-2023/"
             },
             "2025":{
                     "data_url": "https://www.archives.gov/research/jfk/release-2025"
