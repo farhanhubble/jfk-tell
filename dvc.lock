@@ -49,3 +49,32 @@ stages:
       md5: 2c293d05ba9a85e8067a588aa00b2370.dir
       size: 14480416
       nfiles: 2182
+  download:
+    cmd: python download.py
+    deps:
+    - path: download.py
+      hash: md5
+      md5: a07abb649ceffb1e814db8e2ea04369d
+      size: 4416
+    params:
+      .config/default.json:
+        download:
+          URLS:
+            2017-2018:
+              data_url: https://www.archives.gov/research/jfk/release-2017-2018
+            '2021':
+              data_url: https://www.archives.gov/research/jfk/release-2021
+            '2022':
+              data_url: https://www.archives.gov/research/jfk/release-2022/
+            '2023':
+              data_url: https://www.archives.gov/research/jfk/release-2023/
+            '2025':
+              data_url: https://www.archives.gov/research/jfk/release-2025
+          download_dir: data/archives.gov
+          download_cache: data/.cache/archives.gov
+    outs:
+    - path: data/archives.gov
+      hash: md5
+      md5: b93702142990a6484c627d37b4c8042b.dir
+      size: 57406456148
+      nfiles: 56300
