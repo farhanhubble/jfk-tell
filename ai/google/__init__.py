@@ -1,6 +1,7 @@
 from config import config
 from dotenv import dotenv_values
 from httpx import ReadTimeout
+import io
 from enum import Enum
 import functools
 from google import genai
@@ -105,7 +106,7 @@ class GeminiClient:
         self,
         prompt: str,
         system_prompt: str = None,
-        attachments: List[Path] = [],
+        attachments: List[Path] | List[io.BytesIO] = [],
         max_tokens: int = None,
     ):
 
@@ -114,7 +115,7 @@ class GeminiClient:
             if system_prompt:
                 key.update(system_prompt.encode())
             for attachment in attachments:
-                key.update(attachment.read_bytes())
+                key.update(attachment.read())
             if max_tokens:
                 key.update(str(max_tokens).encode())
             return key.hexdigest()
