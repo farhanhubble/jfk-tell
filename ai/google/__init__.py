@@ -1,4 +1,5 @@
 from config import config
+from datetime import datetime
 from dotenv import dotenv_values
 from httpx import ReadTimeout
 import io
@@ -10,6 +11,7 @@ from google.genai.errors import ClientError, ServerError
 from hashlib import md5
 import os
 from pathlib import Path
+import traceback
 import tempfile
 import time
 from typing import List, Callable
@@ -22,6 +24,43 @@ GEMINI_API_KEY = secrets["GEMINI_API_KEY"]
 class GEMINI_AVAILABLE_MODELS(Enum):
     GEMINI_1_5_FLASH = "gemini-1.5-flash"
     GEMINI_2_0_FLASH = "gemini-2.0-flash"
+
+
+class ExceptionMonitor:
+    """ Monitor the number of exceptions raised and the number of calls made to a function. """
+    def __init__(self, error_rate_threshold: float, min_calls: int):
+        """
+        :param error_rate_threshold: The error rate threshold above which an exception is raised.
+        :param min_calls: The minimum number of calls before the error rate is calculated.
+        """
+        self.error_rate_threshold = error_rate_threshold
+        self.min_calls = min_calls
+        self.nb_exceptions = 0
+        self.nb_calls = 0
+        self.error_rate = 0
+
+    def _save_exception(self):
+        with open("exceptions.log", "a") as f:
+            f.write(f"{datetime.now()}\n")
+            f.write(traceback.format_exc())
+            f.write("\n\n")
+
+
+    def __call__(self, func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception:
+                self.nb_exceptions += 1
+                if self.nb_calls >= self.min_calls:
+                    self.error_rate = self.nb_exceptions / self.nb_calls
+                    if self.error_rate > self.error_rate_threshold:
+                        raise
+                self._save_exception()
+            finally:
+                self.nb_calls += 1
+        return wrapper
 
 
 def retry_with_backoff(backoffs: List[int], when: Callable[[Exception], bool]):
@@ -100,6 +139,7 @@ class GeminiClient:
             if not self._cache_dir.exists():
                 self._cache_dir.mkdir(parents=True)
 
+    @ExceptionMonitor(error_rate_threshold=0.03, min_calls=100)
     @retry_with_backoff([30, 60], when=_is_retryable)
     @skip_silently(when=_is_file_size_exceeded)
     def generate(
