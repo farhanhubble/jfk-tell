@@ -1,4 +1,4 @@
-The images you have are scanned pages from a PDF. Some of the information can be 
+Here is an image of a scanned page from a PDF. Some of the information can be 
 handwritten and some information can be difficult to read. 
 
 Recreate the information in Markdown format as best as possible without making any guesses.
@@ -9,14 +9,14 @@ Use the following format:
 <extracted information>
 ```
 
-Place information extracted from all pages inside a single markdown block.
+Use only a single markdown block.
 Your information will be programmatically parsed so you MUST stick to this format.
 
 Example:
 
 Observations/Remarks:
 
-This document appears to be a memo regarding Lee Harvey Oswald's activities in 
+This page appears to be part of a memo regarding Lee Harvey Oswald's activities in 
 Helsinki in 1959, created as part of the Warren Commission investigation. It 
 discusses Oswald's timeline and potential contact with the Soviet consulate.
 
