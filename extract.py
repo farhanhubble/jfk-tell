@@ -2,6 +2,7 @@ from _logging import logger
 from ai.google import GeminiClient, GEMINI_AVAILABLE_MODELS
 from config import config
 import io
+from multiprocessing import Pool
 from pathlib import Path
 from pypdf import PdfReader, PdfWriter
 from tqdm import tqdm
@@ -15,32 +16,6 @@ def _model_from_name(name: str) -> GEMINI_AVAILABLE_MODELS:
         raise ValueError(
             f"Model {name} not available. Choose from {[k for k in GEMINI_AVAILABLE_MODELS]}"
         )
-
-
-def extract_all(
-    src_dir: Path,
-    target_dir: Path,
-    model_name: GEMINI_AVAILABLE_MODELS,
-    prompt_file: Path,
-    system_prompt_file: Path = None,
-    max_tokens: int = None,
-):
-    logger.info(f"Extracting information from {src_dir} to {target_dir}")
-    model = _model_from_name(model_name)
-    client = GeminiClient(model, use_local_cache=True)
-    with open(prompt_file, "r") as f:
-        prompt = f.read()
-    if system_prompt_file:
-        with open(system_prompt_file, "r") as f:
-            system_prompt = f.read()
-    else:
-        system_prompt = None
-
-    pdf_files = sorted(list(src_dir.glob("*.pdf")))
-    if not target_dir.exists():
-        target_dir.mkdir(parents=True)
-    for pdf_file in tqdm(pdf_files, desc="Extracting information from PDFs"):
-        _extract_single_file(pdf_file, target_dir, client, prompt, system_prompt, max_tokens)
 
 
 def _parse_markdown(response: str):
@@ -65,39 +40,100 @@ def _load_pdf_pages(pdf_file: Path):
         yield buffer
 
 
-def _extract_single_file(
-    src: Path,
-    tgt_dir: Path,
-    client: GeminiClient,
-    prompt: str,
-    system_prompt: str = None,
+class Extractor:
+    def __init__(
+        self,
+        model: GEMINI_AVAILABLE_MODELS,
+        prompt_file: Path,
+        system_prompt_file: Path = None,
+        max_tokens: int = None,
+    ):
+        self.client = GeminiClient(model)
+        with open(prompt_file, "r") as f:
+            self.prompt = f.read()
+        if system_prompt_file:
+            with open(system_prompt_file, "r") as f:
+                self.system_prompt = f.read()
+        else:
+            self.system_prompt = None
+        self.max_tokens = max_tokens
+
+    def extract_single_file(
+        self,
+        src: Path,
+        tgt_dir: Path,
+    ):
+        pages = list(_load_pdf_pages(src))
+        extracted_raw = []
+        for page in pages:
+            extracted_raw.append(
+                self.extract_single_page(
+                    page, self.client, self.prompt, self.system_prompt, self.max_tokens
+                )
+            )
+
+        if config.extraction.include_annotation:
+            content = "\n\n".join(extracted_raw)
+        else:
+            content = "\n\n".join(map(_parse_markdown, extracted_raw))
+
+        file_ext = ".txt" if config.extraction.include_annotation else ".md"
+        tgt = tgt_dir / src.with_suffix(file_ext).name
+        with open(tgt, "w") as f:
+            f.write(content or "")
+
+    def extract_single_page(
+        self,
+        page: io.BytesIO,
+    ):
+        raw = self.client.generate(self.prompt, self.system_prompt, [page], self.max_tokens)
+        return raw
+
+
+def _worker(
+    pdf_file: str,
+    target_dir: str,
+    model_name: str,
+    prompt_file: str,
+    system_prompt_file: str,
+    max_tokens: int,
+):
+    global extractor
+    extractor = Extractor(_model_from_name(model_name), Path(prompt_file), Path(system_prompt_file), max_tokens)
+    extractor.extract_single_file(Path(pdf_file), Path(target_dir))
+
+
+def __worker_wrapper(args):
+    return _worker(*args)
+
+
+def extract_all(
+    src_dir: Path,
+    target_dir: Path,
+    model_name: GEMINI_AVAILABLE_MODELS,
+    prompt_file: Path,
+    system_prompt_file: Path = None,
     max_tokens: int = None,
 ):
-    pages = list(_load_pdf_pages(src))
-    extracted_raw = []
-    for page in pages:
-        extracted_raw.append(_extract_single_page(page, client, prompt, system_prompt, max_tokens))
-
-    if config.extraction.include_annotation:
-        content = '\n\n'.join(extracted_raw)
-    else:
-        content = '\n\n'.join(map(_parse_markdown, extracted_raw))
-
-    file_ext = ".txt" if config.extraction.include_annotation else ".md"
-    tgt = tgt_dir / src.with_suffix(file_ext).name
-    with open(tgt, "w") as f:
-        f.write(content or "")
-
-
-def _extract_single_page(
-    page: io.BytesIO,
-    client: GeminiClient,
-    prompt: str,
-    system_prompt: str = None,
-    max_tokens: int = None,
-):
-    raw =  client.generate(prompt, system_prompt, [page], max_tokens)
-    return raw
+    logger.info(f"Extracting information from {src_dir} to {target_dir}")
+    pdf_files = sorted(list(src_dir.glob("*.pdf")))
+    if not target_dir.exists():
+        target_dir.mkdir(parents=True)
+    
+    
+    with Pool(32) as pool:
+        list(
+            tqdm(
+                pool.imap(
+                    __worker_wrapper,
+                    [
+                        (str(pdf_file), str(target_dir), model_name.value, str(prompt_file), str(system_prompt_file), max_tokens)
+                        for pdf_file in pdf_files
+                    ],
+                ),
+                total=len(pdf_files),
+            )
+        )
 
 
 if __name__ == "__main__":
