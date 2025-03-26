@@ -87,7 +87,7 @@ class Extractor:
         page: io.BytesIO,
     ):
         raw = self.client.generate(self.prompt, self.system_prompt, [page], self.max_tokens)
-        return raw
+        return raw or ""
 
 
 def _worker(
