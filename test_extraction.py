@@ -1,15 +1,10 @@
-from ai.google import GeminiClient
-from extract import _model_from_name, _extract_single_file
-from pathlib import Path
+from extract import _worker
 
-src = Path("data/archives.gov/2017-2018/104-10001-10004.pdf")
-target_dir = Path(".")
-client = GeminiClient(_model_from_name("gemini-2.0-flash"))
+src = "data/archives.gov/2017-2018/104-10001-10004.pdf"
+target_dir = "."
+model_name = "gemini-2.0-flash"
 
-with open("prompts/extraction/instructions.txt") as f:
-    prompt = f.read()
+prompt_file = "prompts/extraction/instructions.txt"
+system_prompt_file = "prompts/extraction/system.txt"
 
-with open("prompts/extraction/system.txt") as f:
-    system_prompt = f.read()
-
-_extract_single_file(src, target_dir, client, prompt, system_prompt)
+_worker(src, target_dir, model_name, prompt_file, system_prompt_file, 4096)
