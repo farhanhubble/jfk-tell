@@ -94,8 +94,8 @@ class GeminiClient:
                 f"Model {model} not available. Choose from {[k for k in GEMINI_AVAILABLE_MODELS]}"
             )
         self._model = model
+        self._use_local_cache = use_local_cache
         if use_local_cache:
-            self._use_local_cache = use_local_cache
             self._cache_dir = config.extraction.cache_dir
             if not self._cache_dir.exists():
                 self._cache_dir.mkdir(parents=True)
