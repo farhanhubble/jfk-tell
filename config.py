@@ -3,12 +3,18 @@ from pydantic import BaseModel, RootModel, Field
 from pathlib import Path
 
 
-class DOWNLOAD_CONFIG(BaseModel):
+class BaseConfigClass(BaseModel):
+    class Config:
+        extra = "forbid"
+        frozen = True
+
+
+class DOWNLOAD_CONFIG(BaseConfigClass):
     URLS: dict
     download_dir: Path
     download_cache: Path
 
-class EXTRACTION_CONFIG(BaseModel):
+class EXTRACTION_CONFIG(BaseConfigClass):
     model_name: str
     prompt_file: Path
     system_prompt_file: Path = None
@@ -18,9 +24,10 @@ class EXTRACTION_CONFIG(BaseModel):
     include_annotation: bool = Field(
         ..., description="Include LLM-generated remarks in the extracted document"
     )
+    cache_dir: Path
 
 
-class Config(BaseModel):
+class Config(BaseConfigClass):
     secrets_file: Path = Field(..., description="Path to the secrets file")
     download: DOWNLOAD_CONFIG = Field(..., description="Download configuration")
     extraction: EXTRACTION_CONFIG = Field(..., description="Extraction configuration")
