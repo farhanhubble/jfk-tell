@@ -66,11 +66,7 @@ class Extractor:
         pages = list(_load_pdf_pages(src))
         extracted_raw = []
         for page in pages:
-            extracted_raw.append(
-                self.extract_single_page(
-                    page
-                )
-            )
+            extracted_raw.append(self.extract_single_page(page))
 
         if config.extraction.include_annotation:
             content = "\n\n".join(extracted_raw)
@@ -86,7 +82,9 @@ class Extractor:
         self,
         page: io.BytesIO,
     ):
-        raw = self.client.generate(self.prompt, self.system_prompt, [page], self.max_tokens)
+        raw = self.client.generate(
+            self.prompt, self.system_prompt, [page], self.max_tokens
+        )
         return raw or ""
 
 
@@ -99,7 +97,12 @@ def _worker(
     max_tokens: int,
 ):
     global extractor
-    extractor = Extractor(_model_from_name(model_name), Path(prompt_file), Path(system_prompt_file), max_tokens)
+    extractor = Extractor(
+        _model_from_name(model_name),
+        Path(prompt_file),
+        Path(system_prompt_file),
+        max_tokens,
+    )
     extractor.extract_single_file(Path(pdf_file), Path(target_dir))
 
 
@@ -119,17 +122,24 @@ def extract_all(
     pdf_files = sorted(list(src_dir.glob("*.pdf")))
     if not target_dir.exists():
         target_dir.mkdir(parents=True)
-    
-    
+
     with Pool(32) as pool:
         list(
             tqdm(
                 pool.imap(
                     __worker_wrapper,
                     [
-                        (str(pdf_file), str(target_dir), model_name, str(prompt_file), str(system_prompt_file), max_tokens)
+                        (
+                            str(pdf_file),
+                            str(target_dir),
+                            model_name,
+                            str(prompt_file),
+                            str(system_prompt_file),
+                            max_tokens,
+                        )
                         for pdf_file in pdf_files
                     ],
+                    chunksize=16,
                 ),
                 total=len(pdf_files),
             )
