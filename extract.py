@@ -61,6 +61,7 @@ def _load_pdf_pages(pdf_file: Path):
         writer = PdfWriter()
         writer.add_page(page)
         writer.write(buffer)
+        buffer.seek(0)
         yield buffer
 
 
