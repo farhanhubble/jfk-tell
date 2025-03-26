@@ -1,6 +1,7 @@
 from config import config
 from dotenv import dotenv_values
 from httpx import ReadTimeout
+import io
 from enum import Enum
 import functools
 from google import genai
@@ -93,8 +94,8 @@ class GeminiClient:
                 f"Model {model} not available. Choose from {[k for k in GEMINI_AVAILABLE_MODELS]}"
             )
         self._model = model
+        self._use_local_cache = use_local_cache
         if use_local_cache:
-            self._use_local_cache = use_local_cache
             self._cache_dir = config.extraction.cache_dir
             if not self._cache_dir.exists():
                 self._cache_dir.mkdir(parents=True)
@@ -105,7 +106,7 @@ class GeminiClient:
         self,
         prompt: str,
         system_prompt: str = None,
-        attachments: List[Path] = [],
+        attachments: List[Path] | List[io.BytesIO] = [],
         max_tokens: int = None,
     ):
 
@@ -114,7 +115,7 @@ class GeminiClient:
             if system_prompt:
                 key.update(system_prompt.encode())
             for attachment in attachments:
-                key.update(attachment.read_bytes())
+                key.update(attachment.read())
             if max_tokens:
                 key.update(str(max_tokens).encode())
             return key.hexdigest()
@@ -129,7 +130,10 @@ class GeminiClient:
         attached_files = []
         for attachment in attachments:
             try:
-                f = self._client.files.upload(file=attachment)
+                f = self._client.files.upload(
+                    file=attachment, 
+                    config=dict(mime_type='application/pdf')
+                )
                 attached_files.append(f)
             except Exception as e:
                 raise Exception(f"Failed to upload file {attachment}: {e}") from e
