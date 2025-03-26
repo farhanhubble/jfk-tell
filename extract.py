@@ -110,7 +110,7 @@ def __worker_wrapper(args):
 def extract_all(
     src_dir: Path,
     target_dir: Path,
-    model_name: GEMINI_AVAILABLE_MODELS,
+    model_name: str,
     prompt_file: Path,
     system_prompt_file: Path = None,
     max_tokens: int = None,
@@ -127,7 +127,7 @@ def extract_all(
                 pool.imap(
                     __worker_wrapper,
                     [
-                        (str(pdf_file), str(target_dir), model_name.value, str(prompt_file), str(system_prompt_file), max_tokens)
+                        (str(pdf_file), str(target_dir), model_name, str(prompt_file), str(system_prompt_file), max_tokens)
                         for pdf_file in pdf_files
                     ],
                 ),
