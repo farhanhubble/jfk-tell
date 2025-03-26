@@ -48,7 +48,7 @@ class Extractor:
         system_prompt_file: Path = None,
         max_tokens: int = None,
     ):
-        self.client = GeminiClient(model)
+        self.client = GeminiClient(model, use_local_cache=True)
         with open(prompt_file, "r") as f:
             self.prompt = f.read()
         if system_prompt_file:
