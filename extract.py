@@ -68,7 +68,7 @@ class Extractor:
         for page in pages:
             extracted_raw.append(
                 self.extract_single_page(
-                    page, self.client, self.prompt, self.system_prompt, self.max_tokens
+                    page
                 )
             )
 
