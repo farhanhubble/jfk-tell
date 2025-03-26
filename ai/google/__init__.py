@@ -116,6 +116,8 @@ class GeminiClient:
                 key.update(system_prompt.encode())
             for attachment in attachments:
                 key.update(attachment.read())
+                if isinstance(attachment, io.BytesIO): # https://github.com/farhanhubble/jfk-tell/issues/1
+                    attachment.seek(0)
             if max_tokens:
                 key.update(str(max_tokens).encode())
             return key.hexdigest()
