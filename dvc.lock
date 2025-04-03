@@ -18,17 +18,17 @@ stages:
     deps:
     - path: data/archives.gov
       hash: md5
-      md5: 00fb82b4b69fbf7628dd7efcf7b8cf1a.dir
-      size: 6468234807
-      nfiles: 2183
+      md5: b93702142990a6484c627d37b4c8042b.dir
+      size: 57406456148
+      nfiles: 56300
     - path: extract.py
       hash: md5
-      md5: dae07b2cdb407d2612f5274a196411d0
-      size: 2709
+      md5: 568007432d4937ccee693c6c1df156e6
+      size: 4586
     - path: prompts/extraction/instructions.txt
       hash: md5
-      md5: f396caf51c0fb61eb658b672c2f98f9f
-      size: 2170
+      md5: 5ee6948362262d6e11c61c33289c2685
+      size: 2130
     - path: prompts/extraction/system.txt
       hash: md5
       md5: 89f85aaa4e9e6edda90ac93dd3949b05
@@ -42,13 +42,14 @@ stages:
           max_tokens: 4096
           src_dir: data/archives.gov
           dest_dir: data/extracted
-          include_annotation: true
+          include_annotation: false
+          cache_dir: data/.cache/extraction
     outs:
     - path: data/extracted
       hash: md5
-      md5: 2c293d05ba9a85e8067a588aa00b2370.dir
-      size: 14480416
-      nfiles: 2182
+      md5: a589da50786665b4c4a847162b79b7cc.dir
+      size: 725506750
+      nfiles: 56300
   download:
     cmd: python download.py
     deps:
