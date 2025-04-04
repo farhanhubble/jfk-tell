@@ -4,17 +4,15 @@ from dotenv import dotenv_values
 from httpx import ReadTimeout
 import io
 from enum import Enum
-import functools
 from google import genai
 from google.genai import types
 from google.genai.errors import ClientError, ServerError
 from hashlib import md5
 import os
 from pathlib import Path
-import traceback
 import tempfile
-import time
-from typing import List, Callable
+from typing import List
+from exceptions import ExceptionMonitor, retry_with_backoff, skip_silently
 
 
 secrets = dotenv_values(config.secrets_file)
@@ -24,83 +22,6 @@ GEMINI_API_KEY = secrets["GEMINI_API_KEY"]
 class GEMINI_AVAILABLE_MODELS(Enum):
     GEMINI_1_5_FLASH = "gemini-1.5-flash"
     GEMINI_2_0_FLASH = "gemini-2.0-flash"
-
-
-class ExceptionMonitor:
-    """ Monitor the number of exceptions raised and the number of calls made to a function. """
-    def __init__(self, error_rate_threshold: float, min_calls: int):
-        """
-        :param error_rate_threshold: The error rate threshold above which an exception is raised.
-        :param min_calls: The minimum number of calls before the error rate is calculated.
-        """
-        self.error_rate_threshold = error_rate_threshold
-        self.min_calls = min_calls
-        self.nb_exceptions = 0
-        self.nb_calls = 0
-        self.error_rate = 0
-
-    def _save_exception(self):
-        with open("exceptions.log", "a") as f:
-            f.write(f"{datetime.now()}\n")
-            f.write(traceback.format_exc())
-            f.write("\n\n")
-
-
-    def __call__(self, func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except Exception:
-                self.nb_exceptions += 1
-                if self.nb_calls >= self.min_calls:
-                    self.error_rate = self.nb_exceptions / self.nb_calls
-                    if self.error_rate > self.error_rate_threshold:
-                        raise
-                self._save_exception()
-            finally:
-                self.nb_calls += 1
-        return wrapper
-
-
-def retry_with_backoff(backoffs: List[int], when: Callable[[Exception], bool]):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-            for backoff in backoffs:
-                try:
-                    return func(self, *args, **kwargs)
-                except Exception as e:
-                    if not when(e):
-                        raise
-                    time.sleep(backoff)
-            # Re-raise, if we exhaust all backoffs without success
-            else:
-                raise
-
-        return wrapper
-
-    return decorator
-
-
-def skip_silently(when: Callable[[Exception], bool]):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                if not when(e):
-                    raise
-                else:
-                    return (
-                        "Observations/Remarks:\n\n"
-                        "File too large to be processed.\n\n"
-                        "```markdown\n\n```"
-                    )
-
-        return wrapper
-
-    return decorator
 
 
 def _is_file_size_exceeded(e: Exception):
@@ -115,7 +36,11 @@ def _is_file_size_exceeded(e: Exception):
 
 
 def _is_server_overloaded(e: Exception):
-    return isinstance(e, ServerError) and e.code == 503 and str(e).find("The model is overloaded") >= 0
+    return (
+        isinstance(e, ServerError)
+        and e.code == 503
+        and str(e).find("The model is overloaded") >= 0
+    )
 
 
 def _is_file_io_timeout(e: Exception):
@@ -124,6 +49,7 @@ def _is_file_io_timeout(e: Exception):
 
 def _is_retryable(e: Exception):
     return _is_server_overloaded(e) or _is_file_io_timeout(e)
+
 
 class GeminiClient:
     def __init__(self, model: GEMINI_AVAILABLE_MODELS, use_local_cache: bool = False):
@@ -156,7 +82,9 @@ class GeminiClient:
                 key.update(system_prompt.encode())
             for attachment in attachments:
                 key.update(attachment.read())
-                if isinstance(attachment, io.BytesIO): # https://github.com/farhanhubble/jfk-tell/issues/1
+                if isinstance(
+                    attachment, io.BytesIO
+                ):  # https://github.com/farhanhubble/jfk-tell/issues/1
                     attachment.seek(0)
             if max_tokens:
                 key.update(str(max_tokens).encode())
@@ -173,8 +101,7 @@ class GeminiClient:
         for attachment in attachments:
             try:
                 f = self._client.files.upload(
-                    file=attachment, 
-                    config=dict(mime_type='application/pdf')
+                    file=attachment, config=dict(mime_type="application/pdf")
                 )
                 attached_files.append(f)
             except Exception as e:
