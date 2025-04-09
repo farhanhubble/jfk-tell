@@ -31,3 +31,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.debug.dependencies]
 memray = "^1.16.0"
 
+
+[tool.poetry.group.publish.dependencies]
+huggingface-hub = "^0.30.2"
+
