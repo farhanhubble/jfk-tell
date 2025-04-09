@@ -11,7 +11,7 @@ class ExceptionMonitor:
 
     def __init__(self, error_rate_threshold: float, min_calls: int):
         """
-        :param error_rate_threshold: The error rate threshold above which an exception is raised.
+        :param error_rate_threshold: The error rate threshold in [0,1), above which an exception is raised.
         :param min_calls: The minimum number of calls before the error rate is calculated.
         """
         self.error_rate_threshold = error_rate_threshold
@@ -33,6 +33,7 @@ class ExceptionMonitor:
     def __call__(self, func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            self.nb_calls += 1
             try:
                 return func(*args, **kwargs)
             except Exception:
@@ -42,8 +43,6 @@ class ExceptionMonitor:
                     if self.error_rate > self.error_rate_threshold:
                         raise
                 self._save_exception()
-            finally:
-                self.nb_calls += 1
 
         return wrapper
 
