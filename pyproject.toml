@@ -34,4 +34,5 @@ memray = "^1.16.0"
 
 [tool.poetry.group.publish.dependencies]
 huggingface-hub = "^0.30.2"
+pyarrow = "^19.0.1"
 
