@@ -18,6 +18,7 @@ class ExceptionMonitor:
         """
         :param error_rate_threshold: The error rate threshold in [0,1), above which an exception is raised.
         :param min_calls: The minimum number of calls before the error rate is calculated.
+        :param window_sz: The size of the sliding window for calculating exception rate.
         """
         self.error_rate_threshold = error_rate_threshold
         self.min_calls = min_calls
